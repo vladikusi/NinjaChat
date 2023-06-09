@@ -14,13 +14,16 @@ import java.io.IOException;
 public class App extends Application {
 
     private static Scene scene;
+    public Server server;
 
     @Override
     public void start(Stage stage) throws IOException {
-        scene = new Scene(loadFXML("primary"), 640, 480);
+        stage.setResizable(false);
+        scene = new Scene(loadFXML("ServerView"), 600, 400);
         stage.setScene(scene);
         stage.show();
     }
+    
 
     static void setRoot(String fxml) throws IOException {
         scene.setRoot(loadFXML(fxml));
