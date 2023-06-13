@@ -14,7 +14,7 @@ public class Server {
     private final ExecutorService pool;
     private final List<ServerThread> clients;
     private final int portNumber;
-    private  boolean stop;
+    private boolean stop;
 
     Server(int portNumber) {
         this.portNumber = portNumber;
@@ -29,7 +29,7 @@ public class Server {
             ServerSocket serverSocket = new ServerSocket(portNumber);
             stop = false;
 
-            while(! stop){//do in loop to support multiple clients
+            while(!stop){//do in loop to support multiple clients
                 Socket clientSocket = serverSocket.accept();
                 System.out.println("SERVER: client connected");
                 ServerThread st1 = new ServerThread(clientSocket);
@@ -40,12 +40,14 @@ public class Server {
         }
     }
 
-    public void stop(){
+    public void stop() {
+        System.out.println("Shutting down Server");
         for( ServerThread st : clients) {
             st.stopServerTread();
         }
         stop = true;
         pool.shutdown();
+        System.out.print("Server shut down");
     }
 
     public void activate(){
