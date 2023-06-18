@@ -15,7 +15,7 @@
             <Font size="24.0" />
          </font>
       </Label>
-      <ListView fx:id="members" layoutX="432.0" layoutY="60.0" onMouseClicked="#onListClicked" prefHeight="280.0" prefWidth="141.0" />
+      <ListView fx:id="members" layoutX="432.0" layoutY="60.0" onKeyPressed="#onListClicked" onMouseClicked="#onListClicked" prefHeight="280.0" prefWidth="141.0" />
       <Button layoutX="266.0" layoutY="322.0" mnemonicParsing="false" onAction="#kickChatter" prefHeight="25.0" prefWidth="149.0" text="Кикнуть пользователя" />
       <Button layoutX="59.0" layoutY="322.0" mnemonicParsing="false" onAction="#launchServer" prefHeight="25.0" prefWidth="149.0" text="Запустить сервер" />
       <ScrollPane layoutX="59.0" layoutY="60.0" prefHeight="252.0" prefWidth="354.0">
@@ -24,7 +24,7 @@
          </content>
       </ScrollPane>
       <Button layoutX="59.0" layoutY="361.0" mnemonicParsing="false" onAction="#closeServer" prefHeight="25.0" prefWidth="149.0" text="Выключить сервер" />
-      <Label fx:id="chosenMember" alignment="CENTER" layoutX="279.0" layoutY="353.0" prefHeight="17.0" prefWidth="123.0" text="Label" textAlignment="CENTER" />
+      <Label fx:id="chosenMember" alignment="CENTER" layoutX="279.0" layoutY="353.0" prefHeight="17.0" prefWidth="123.0" text="Никто не выбран" textAlignment="CENTER" />
       <Label layoutX="432.0" layoutY="35.0" prefHeight="25.0" prefWidth="141.0" text="Активные пользователи" />
    </children>
 </AnchorPane>

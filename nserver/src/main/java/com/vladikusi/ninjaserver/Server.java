@@ -14,22 +14,22 @@ public class Server {
     private final ExecutorService pool;
     private final List<ServerThread> clients;
     private final int portNumber;
+    private ServerSocket serverSocket;
     private boolean stop;
 
     Server(int portNumber) {
         this.portNumber = portNumber;
         pool = Executors.newCachedThreadPool();
         clients = new ArrayList<>();
+        stop = false;
     }
 
     private void runServer(){
 
         System.out.println("SERVER: Waiting for client");
         try{
-            ServerSocket serverSocket = new ServerSocket(portNumber);
-            stop = false;
-
-            while(!stop){//do in loop to support multiple clients
+            serverSocket = new ServerSocket(portNumber);
+            while(!stop) {
                 Socket clientSocket = serverSocket.accept();
                 System.out.println("SERVER: client connected");
                 ServerThread st1 = new ServerThread(clientSocket);
@@ -41,13 +41,19 @@ public class Server {
     }
 
     public void stop() {
-        System.out.println("Shutting down Server");
-        for( ServerThread st : clients) {
-            st.stopServerTread();
+        for(ServerThread st : clients) {
+            st.stopServerThread();
         }
         stop = true;
         pool.shutdown();
-        System.out.print("Server shut down");
+        try
+        {
+            serverSocket.close();
+        }
+        catch(IOException e)
+        {
+            e.printStackTrace();
+        }
     }
 
     public void activate(){
@@ -58,7 +64,7 @@ public class Server {
 class ServerThread extends Thread {
 
     private Socket socket = null;
-    private  boolean stop;
+    private boolean stop;
 
     public ServerThread(Socket socket) {
         this.socket = socket;
@@ -66,23 +72,21 @@ class ServerThread extends Thread {
 
     @Override
     public void run() {
-
         try{
             stop = false;
             DataInputStream in = new DataInputStream(socket.getInputStream());
             String fromClient;
             while(!stop){
                 if((fromClient = in.readUTF()) != null) {
-                    System.out.println("SERVER: recieved message - " + fromClient);
+                    System.out.println("SERVER: received message - " + fromClient);
                 }
             }
-
         } catch (IOException e) {
             e.printStackTrace();;
         }
     }
 
-    void stopServerTread(){
+    void stopServerThread(){
         stop = true;
     }
 }

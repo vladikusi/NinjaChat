@@ -6,8 +6,8 @@ import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
+import javafx.application.Platform;
 import javafx.collections.*;
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
@@ -22,21 +22,27 @@ public class ServerController implements Initializable{
     @FXML
     private ListView members;
     private ObservableList<String> names;
+
+    private Server server;
+    
     
     @FXML
     private void launchServer() throws IOException {
-
+        server = new Server(1111);
+        server.activate();
     }
 
     @FXML
     private void closeServer() throws IOException {
-
+        server.stop();
     }
     
-    @FXML
-    public void exitApplication(ActionEvent event)
+    public void shutdown()
     {
-        
+        System.out.println("This works");
+        if (server != null)
+            server.stop();
+        Platform.exit();
     }
 
     @FXML
@@ -56,7 +62,8 @@ public class ServerController implements Initializable{
 
     @FXML
     private void onListClicked() throws IOException {
-        chosenMember.setText("Выбран " + members.getSelectionModel().getSelectedItem());
+        if (members.getSelectionModel().getSelectedItem() != null)
+            chosenMember.setText("Выбран " + members.getSelectionModel().getSelectedItem());
     }
 
     @Override
@@ -89,8 +96,8 @@ public class ServerController implements Initializable{
         servFlow.setPadding(new Insets(10));
         servFlow.setLineSpacing(5);
         servFlow.getChildren().addAll(txts);
-        names = FXCollections.observableArrayList("IVAN", "PETYA", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14");
-        chosenMember.setText("Выбран " + names.get(0));
+        names = FXCollections.observableArrayList("Петя", "Ваня");
+        //chosenMember.setText("Выбран " + names.get(0));
         members.setItems(names);
     }
 }
