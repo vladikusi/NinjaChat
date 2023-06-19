@@ -15,12 +15,17 @@ import javafx.scene.control.TextFormatter;
 public class PrimaryController implements Initializable {
     @FXML
     private TextField nameField;
+    @FXML
+    private TextField ninjaField; 
 
     @FXML
     private void switchToSecondary() throws IOException {
         ClientInfo.username = nameField.getText().toString();
-        Client.start(ClientInfo.username);
-        App.setRoot("secondary");
+        if (!ClientInfo.username.isBlank())
+        {
+            Client.start(ClientInfo.username);
+            App.setRoot("secondary");
+        }
     }
     
     @FXML
@@ -31,11 +36,15 @@ public class PrimaryController implements Initializable {
     
     @Override
     public void initialize(URL arg0, ResourceBundle arg1) {
-        Pattern pattern = Pattern.compile(".{0,10}");
-        TextFormatter<String> formatter = new TextFormatter<String>((UnaryOperator<TextFormatter.Change>) change -> {
+        Pattern pattern = Pattern.compile(".{0,20}");
+        TextFormatter<String> formatter1 = new TextFormatter<String>((UnaryOperator<TextFormatter.Change>) change -> {
         return pattern.matcher(change.getControlNewText()).matches() ? change : null;
         });
+        TextFormatter<String> formatter2 = new TextFormatter<String>((UnaryOperator<TextFormatter.Change>) change -> {
+            return pattern.matcher(change.getControlNewText()).matches() ? change : null;
+            });
 
-        nameField.setTextFormatter(formatter);
+        nameField.setTextFormatter(formatter1);
+        ninjaField.setTextFormatter(formatter2);
     }
 }
