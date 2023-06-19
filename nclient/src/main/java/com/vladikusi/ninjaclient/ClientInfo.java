@@ -1,5 +1,5 @@
 package com.vladikusi.ninjaclient;
 
 public class ClientInfo {
-    public static String randomthing;
+    public static String username;
 }

@@ -16,6 +16,6 @@
       <PasswordField layoutX="438.0" layoutY="200.0" prefHeight="25.0" prefWidth="97.0" />
       <Label layoutX="455.0" layoutY="181.0" text="Код ниндзя" />
       <Label layoutX="35.0" layoutY="204.0" text="Ник:" />
-      <TextField layoutX="81.0" layoutY="200.0" prefHeight="25.0" prefWidth="171.0" />
+      <TextField fx:id="nameField" layoutX="81.0" layoutY="200.0" onAction="#onEnter" prefHeight="25.0" prefWidth="171.0" />
    </children>
 </AnchorPane>

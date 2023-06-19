@@ -55,6 +55,7 @@ public class ServerController implements Initializable{
             if(server.isActive())
                 appendFlow("Сервер выключен");
             server.stop();
+            ServerInfo.names.clear();
         }
     }
     
