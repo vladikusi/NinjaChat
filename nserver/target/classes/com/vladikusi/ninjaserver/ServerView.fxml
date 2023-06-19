@@ -20,7 +20,7 @@
       <Button layoutX="59.0" layoutY="322.0" mnemonicParsing="false" onAction="#launchServer" prefHeight="25.0" prefWidth="149.0" text="Запустить сервер" />
       <ScrollPane layoutX="59.0" layoutY="60.0" prefHeight="252.0" prefWidth="354.0">
          <content>
-            <TextFlow fx:id="servFlow" prefHeight="190.0" prefWidth="352.0" />
+            <TextFlow fx:id="servFlow" prefHeight="211.0" prefWidth="334.0" />
          </content>
       </ScrollPane>
       <Button layoutX="59.0" layoutY="361.0" mnemonicParsing="false" onAction="#closeServer" prefHeight="25.0" prefWidth="149.0" text="Выключить сервер" />

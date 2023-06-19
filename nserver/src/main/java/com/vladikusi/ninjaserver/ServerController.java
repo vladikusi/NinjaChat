@@ -20,43 +20,62 @@ public class ServerController implements Initializable{
     @FXML
     private TextFlow servFlow;
     @FXML
-    private ListView members;
-    private ObservableList<String> names;
+    private ListView<String> members;
+    private DateTimeFormatter timeFormat;
 
     private Server server;
     
+    public void appendFlow(String str)
+    {
+        Text t1 = new Text(LocalTime.now().format(timeFormat) + ' ');
+        Text t2 = new Text(str + '\n');
+        t1.setFont(Font.font("Arial", FontWeight.BOLD, 14));
+        t2.setFont(Font.font("Arial", 14));
+        servFlow.getChildren().addAll(t1, t2);
+    }
+
+    public void updateNames()
+    {
+        members.setItems(ServerInfo.names);
+    }
     
     @FXML
     private void launchServer() throws IOException {
-        server = new Server(1111);
-        server.activate();
+        if (server == null || !server.isActive())
+        {
+            server = new Server(1111);
+            server.activate();
+            appendFlow("Сервер запущен");
+        }
     }
 
     @FXML
     private void closeServer() throws IOException {
-        server.stop();
+        if (server != null) {
+            if(server.isActive())
+                appendFlow("Сервер выключен");
+            server.stop();
+        }
     }
     
     public void shutdown()
     {
-        System.out.println("This works");
-        if (server != null)
-            server.stop();
+        if (server != null) server.stop();
         Platform.exit();
     }
 
     @FXML
     private void kickChatter() throws IOException {
-        
+        String kicked = members.getSelectionModel().getSelectedItem();
+        if (kicked != null)
+        {
+            ServerInfo.delName(kicked);
+            appendFlow(kicked + " был выгнан");
+        }
     }
 
     @FXML
     private void TextView() throws IOException {
-
-    }
-
-    @FXML
-    private void scrollText() throws IOException {
 
     }
 
@@ -68,36 +87,11 @@ public class ServerController implements Initializable{
 
     @Override
     public void initialize(URL arg0, ResourceBundle arg1) {
-        List<Text> txts = new ArrayList<Text>();
-        DateTimeFormatter timeFormat = DateTimeFormatter.ofPattern("HH:mm:ss");
-        for (int i = 0; i < 10; ++i)
-        {
-            Text t;
-            t = new Text(LocalTime.now().format(timeFormat));
-            t.setFont(Font.font("Arial", FontWeight.BOLD, 14));
-            txts.add(t);
-            switch(i % 4)
-            {
-                case 0:
-                    t = new Text(" Петя зашёл на сервер\n");
-                    break;
-                case 1: t = new Text(" Ваня зашёл на сервер\n");
-                    break;
-                case 2: t = new Text(" Ваня вышел из сервера\n");
-                    break;
-                case 3: t = new Text(" Петя вышел из сервера\n");
-                    break;
-                default: t = new Text("Дефолт\n");
-                    break;
-            }
-            t.setFont(Font.font("Arial", 14));
-            txts.add(t);
-        }
+        ServerInfo.setServerController(this);
+        timeFormat = DateTimeFormatter.ofPattern("HH:mm:ss");
         servFlow.setPadding(new Insets(10));
         servFlow.setLineSpacing(5);
-        servFlow.getChildren().addAll(txts);
-        names = FXCollections.observableArrayList("Петя", "Ваня");
-        //chosenMember.setText("Выбран " + names.get(0));
-        members.setItems(names);
+        ServerInfo.names = FXCollections.observableArrayList();
+        members.setItems(ServerInfo.names);
     }
 }
