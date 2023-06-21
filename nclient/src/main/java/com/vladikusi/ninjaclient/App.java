@@ -20,6 +20,13 @@ public class App extends Application {
         scene = new Scene(loadFXML("primary"), 600, 400);
         stage.setResizable(false);
         stage.setScene(scene);
+        stage.setOnCloseRequest(e->{
+            try {
+                ClientInfo.shutdown();
+            } catch (IOException e1) {
+                e1.printStackTrace();
+            }
+        });
         stage.show();
     }
 
@@ -28,8 +35,8 @@ public class App extends Application {
     }
 
     private static Parent loadFXML(String fxml) throws IOException {
-        FXMLLoader fxmlLoader = new FXMLLoader(App.class.getResource(fxml + ".fxml"));
-        return fxmlLoader.load();
+        FXMLLoader loader = new FXMLLoader(App.class.getResource(fxml + ".fxml"));
+        return loader.load();
     }
 
     public static void main(String[] args) {

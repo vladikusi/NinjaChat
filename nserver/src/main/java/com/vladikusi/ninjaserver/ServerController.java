@@ -6,6 +6,8 @@ import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
+import org.json.JSONArray;
+
 import javafx.application.Platform;
 import javafx.collections.*;
 import javafx.fxml.FXML;
@@ -21,21 +23,28 @@ public class ServerController implements Initializable{
     private TextFlow servFlow;
     @FXML
     private ListView<String> members;
-    private DateTimeFormatter timeFormat;
+    public DateTimeFormatter timeFormat;
 
     private Server server;
+
+    public void clearChMember()
+    {
+        if (members.getSelectionModel().getSelectedItem() == null)
+            chosenMember.setText("Никто не выбран");
+    }
     
     public void appendFlow(String str)
     {
         Text t1 = new Text(LocalTime.now().format(timeFormat) + ' ');
-        Text t2 = new Text(str + '\n');
+        Text t2 = new Text(str);
         t1.setFont(Font.font("Arial", FontWeight.BOLD, 14));
-        t2.setFont(Font.font("Arial", 14));
+        t2.setFont(Font.font("Arial", 14)); 
         servFlow.getChildren().addAll(t1, t2);
     }
 
     public void updateNames()
     {
+        server.checkClients();
         members.setItems(ServerInfo.names);
     }
     
@@ -45,7 +54,7 @@ public class ServerController implements Initializable{
         {
             server = new Server(1111);
             server.activate();
-            appendFlow("Сервер запущен");
+            appendFlow("Сервер запущен\n");
         }
     }
 
@@ -53,14 +62,14 @@ public class ServerController implements Initializable{
     private void closeServer() throws IOException {
         if (server != null) {
             if(server.isActive())
-                appendFlow("Сервер выключен");
+                appendFlow("Сервер выключен\n");
             server.stop();
-            ServerInfo.names.clear();
         }
     }
     
     public void shutdown()
     {
+        ServerInfo.names.removeAll();
         if (server != null) server.stop();
         Platform.exit();
     }
@@ -71,7 +80,9 @@ public class ServerController implements Initializable{
         if (kicked != null)
         {
             ServerInfo.delName(kicked);
-            appendFlow(kicked + " был выгнан");
+            server.checkClients();
+            appendFlow(kicked + ": был выгнан\n");
+            chosenMember.setText("Никто не выбран");
         }
     }
 
@@ -86,9 +97,20 @@ public class ServerController implements Initializable{
             chosenMember.setText("Выбран " + members.getSelectionModel().getSelectedItem());
     }
 
+    public void updateAllsChat()
+    {
+        server.sendToClients();
+    }
+    public void checkClients()
+    {
+        server.checkClients();
+    }
+
     @Override
     public void initialize(URL arg0, ResourceBundle arg1) {
         ServerInfo.setServerController(this);
+        ServerInfo.chatLog = new JSONArray();
+        ServerInfo.readJSONFile();
         timeFormat = DateTimeFormatter.ofPattern("HH:mm:ss");
         servFlow.setPadding(new Insets(10));
         servFlow.setLineSpacing(5);
