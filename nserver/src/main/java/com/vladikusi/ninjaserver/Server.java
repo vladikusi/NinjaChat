@@ -5,10 +5,15 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
+import org.json.JSONObject;
 
 import javafx.application.Platform;
 
@@ -19,7 +24,6 @@ public class Server {
     private final int portNumber;
     private ServerSocket serverSocket;
     private boolean stop;
-    private String str;
 
     Server(int portNumber) {
         this.portNumber = portNumber;
@@ -35,19 +39,60 @@ public class Server {
             while(!stop) {
                 Socket clientSocket = serverSocket.accept();
                 System.out.println("SERVER: client connected");
-                ServerThread st1 = new ServerThread(clientSocket);
-                pool.execute(st1);
+                ServerThread st = new ServerThread(clientSocket);
+                clients.add(st);
+                pool.execute(st);
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
+    public void checkClients()
+    {
+        try{
+            if (!clients.isEmpty())
+                for (Iterator<ServerThread> iterator = clients.iterator(); iterator.hasNext();)
+                {
+                    ServerThread st = iterator.next();
+                    if (!ServerInfo.takenName(st.username))
+                    {
+                        if (st.isConnected())
+                            st.kickChatter();
+                        iterator.remove();
+                    }
+                }
+        }
+        catch(IOException e)
+        {
+            e.printStackTrace();
+        }
+    }
+
+    public void sendToClients()
+    {
+        try{
+            if (!clients.isEmpty())
+                for (Iterator<ServerThread> iterator = clients.iterator(); iterator.hasNext();)
+                {
+                    ServerThread st = iterator.next();
+                    if(st.isConnected())
+                        st.JSONtoClient();
+                }
+        }
+        catch(IOException e)
+        {
+            e.printStackTrace();
+        }
+    }
 
     public void stop() {
-        for(ServerThread st : clients) {
-            st.stopServerThread();
-        }
+        ServerInfo.names.clear();
+        checkClients();
+        if (!clients.isEmpty())
+            for(ServerThread st : clients) {
+                st.stopServerThread();
+            }
         stop = true;
         pool.shutdown();
         try
@@ -58,6 +103,7 @@ public class Server {
         {
             e.printStackTrace();
         }
+        ServerInfo.writeJSONFile();
     }
 
     public void activate(){
@@ -71,14 +117,22 @@ public class Server {
 
 class ServerThread extends Thread {
     private Socket socket = null;
-    private boolean stop;
-    private boolean firstmsg;
+    private DataInputStream dis;
+    private DataOutputStream dos;
+    public boolean stop;
+    public boolean firstmsg;
     private boolean exited;
+    private boolean nname;
+    private boolean kicked;
+    private JSONObject nmsg;
     public String username;
+    private String roomCode;
     private String str;
 
-    public ServerThread(Socket socket) {
+    public ServerThread(Socket socket) throws IOException {
         this.socket = socket;
+        dis = new DataInputStream(socket.getInputStream());
+        dos = new DataOutputStream(socket.getOutputStream());
         firstmsg = true;
         username = "";
     }
@@ -86,26 +140,29 @@ class ServerThread extends Thread {
     @Override
     public void run() {
         try{
+            DateTimeFormatter timeFormat = DateTimeFormatter.ofPattern("HH:mm");
             stop = false;
             exited = false;
-            DataInputStream in = new DataInputStream(socket.getInputStream());
-            DataOutputStream out = new DataOutputStream(socket.getOutputStream());
+            nname = false;
+            nmsg = new JSONObject();
             String fromClient;
             while(!stop){
-                if((fromClient = in.readUTF()) != null) {
+                if((fromClient = dis.readUTF()) != null) {
                     str = fromClient;
                     if (firstmsg && !ServerInfo.takenName(str))
                     {
+                        roomCode = dis.readUTF();
+                        nname = true;
                         username = str;
-                        ServerInfo.addName(str);
-                        str = "подключился.";
+                        str = "подключился.\n";
                         System.out.println("Username: " + username);
-                        firstmsg = false;
+                        firstmsg = false;                        
                     }
-                    else if (firstmsg && ServerInfo.takenName(str) || !firstmsg && !ServerInfo.takenName(username))
+                    else if ((firstmsg && ServerInfo.takenName(str)))
                     {
-                        out.writeUTF("Exit");
-                        exited = true;
+                        dos.writeInt(0);
+                        dos.writeUTF("Exit");
+                        kicked = true;
                     }
                     else if (!str.equals("Exit"))
                     {
@@ -113,25 +170,83 @@ class ServerThread extends Thread {
                     }
                     else if (str.equals("Exit"))
                     {
-                        ServerInfo.delName(username);
-                        str = "отключился.";
+                        str = "отключился.\n";
+                        exited = true;
                     }
                     Platform.runLater(new Runnable(){ 
                         @Override
                         public void run() {
-                            if (!exited)
-                                ServerInfo.appendFlow(username + ": " + str);
+                            if (nname)
+                            {
+                                ServerInfo.addName(username);
+                                nname = false;
+                            }
+                            if(!kicked)
+                            {
+                                nmsg.put("Time", LocalTime.now().format(timeFormat).toString());
+                                nmsg.put("Username", username);
+                                nmsg.put("Message", str);
+                                nmsg.put("RoomCode", roomCode);
+                                ServerInfo.appendFlow(username + "|" + roomCode + ": " + str);
+                                if (!nmsg.isEmpty())
+                                {
+                                    ServerInfo.addJO(nmsg);
+                                    nmsg = new JSONObject();
+                                }
+                                ServerInfo.updateAllsChat();
+                            }
+                            if (exited && ServerInfo.takenName(username))
+                            {
+                                try{
+                                    dos.writeInt(0);
+                                    dos.writeUTF("Exit");
+                                }
+                                catch(IOException e)
+                                {
+                                    e.printStackTrace();
+                                }
+                                ServerInfo.delName(username);
+                            }
                             ServerInfo.updateNames();
+                            ServerInfo.clearChMember();
                         }
                     });
                 }
             }
+            socket.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public void JSONtoClient() throws IOException
+    {
+        dos.writeInt(1);
+        dos.writeInt(ServerInfo.chatLog.length());
+        for (int i = 0; i < ServerInfo.chatLog.length(); i++)
+        {
+            JSONObject explrObject = ServerInfo.chatLog.getJSONObject(i);
+            System.out.println(explrObject.get("Time").toString() + " " + explrObject.get("Username").toString() + " " + explrObject.get("Message").toString());
+            dos.writeUTF(explrObject.get("Time").toString());
+            dos.writeUTF(explrObject.get("Username").toString());
+            dos.writeUTF(explrObject.get("Message").toString());
+            dos.writeUTF(explrObject.get("RoomCode").toString());
+        }
+    }
+
+    public void kickChatter() throws IOException
+    {
+        dos.writeInt(0);
+        dos.writeUTF("Exit");
+    }
+
+    public boolean isConnected() throws IOException
+    {
+        return socket.isConnected();
     }
 
     void stopServerThread(){
         stop = true;
     }
 }
+

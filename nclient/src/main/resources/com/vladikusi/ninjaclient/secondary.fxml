@@ -6,21 +6,20 @@
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.shape.Rectangle?>
+<?import javafx.scene.text.TextFlow?>
 
 <AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/19" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.vladikusi.ninjaclient.SecondaryController">
    <children>
       <Rectangle arcHeight="5.0" arcWidth="5.0" height="60.0" stroke="BLACK" strokeType="INSIDE" width="600.0" />
       <Rectangle arcHeight="5.0" arcWidth="5.0" height="101.0" layoutY="304.0" stroke="BLACK" strokeType="INSIDE" width="600.0" />
       <Button layoutX="20.0" layoutY="14.0" mnemonicParsing="false" onAction="#switchToPrimary" text="Назад" />
-      <TextField layoutX="127.0" layoutY="317.0" prefHeight="69.0" prefWidth="347.0" />
-      <Button layoutX="492.0" layoutY="339.0" mnemonicParsing="false" prefHeight="18.0" prefWidth="86.0" text="Отправить" />
-      <ScrollPane layoutX="127.0" layoutY="69.0" prefHeight="226.0" prefWidth="347.0">
-        <content>
-        <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="92.0" prefWidth="300.0">
-               <children>
-                  <Label layoutX="14.0" layoutY="14.0" prefHeight="17.0" prefWidth="100.0" text="тест" />
-               </children></AnchorPane>
-      </content>
+      <TextField fx:id="chatField" layoutX="127.0" layoutY="317.0" onAction="#onEnter" prefHeight="69.0" prefWidth="347.0" />
+      <Button layoutX="492.0" layoutY="339.0" mnemonicParsing="false" onAction="#sendButton" prefHeight="18.0" prefWidth="86.0" text="Отправить" />
+      <ScrollPane layoutX="127.0" layoutY="69.0" prefHeight="226.0" prefWidth="347.0" vvalue="1.0">
+         <content>
+            <TextFlow fx:id="chatFlow" prefHeight="200.0" prefWidth="322.0" />
+         </content>
    </ScrollPane>
+      <Label fx:id="label" alignment="CENTER" layoutY="80.0" prefHeight="49.0" prefWidth="128.0" />
    </children>
 </AnchorPane>
